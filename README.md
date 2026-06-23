@@ -61,6 +61,7 @@ npm run dev      # http://localhost:3000
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system architecture, data model, RBAC, API surface
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — MVP phases and delivery plan
 - [`docs/MONETIZATION.md`](docs/MONETIZATION.md) — future revenue model
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — CI, Supabase + Vercel deployment, and running from GitHub
 
 ---
 
