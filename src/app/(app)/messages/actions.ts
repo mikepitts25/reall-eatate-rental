@@ -1,0 +1,58 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth";
+import { messageSchema } from "@/lib/validations";
+
+export async function sendMessageAction(
+  _prev: { error?: string },
+  formData: FormData
+): Promise<{ error?: string }> {
+  const user = await requireUser();
+
+  const parsed = messageSchema.safeParse({
+    proposal_id: formData.get("proposal_id"),
+    body: formData.get("body"),
+  });
+  if (!parsed.success) {
+    return { error: "Message can't be empty." };
+  }
+
+  const supabase = await createClient();
+
+  // Confirm the user participates in this proposal thread.
+  const { data: proposal } = await supabase
+    .from("proposals")
+    .select("id, owner_id, operator_id")
+    .eq("id", parsed.data.proposal_id)
+    .single();
+
+  if (
+    !proposal ||
+    (proposal.owner_id !== user.id && proposal.operator_id !== user.id)
+  ) {
+    return { error: "Not authorized to message in this thread." };
+  }
+
+  const { error } = await supabase.from("messages").insert({
+    proposal_id: parsed.data.proposal_id,
+    sender_id: user.id,
+    body: parsed.data.body,
+  });
+  if (error) return { error: error.message };
+
+  // Notify the other participant.
+  const recipient =
+    proposal.owner_id === user.id ? proposal.operator_id : proposal.owner_id;
+  await supabase.from("notifications").insert({
+    user_id: recipient,
+    type: "message_received",
+    title: "New message",
+    body: parsed.data.body.slice(0, 120),
+    link: `/proposals/${parsed.data.proposal_id}`,
+  });
+
+  revalidatePath(`/proposals/${parsed.data.proposal_id}`);
+  return {};
+}
