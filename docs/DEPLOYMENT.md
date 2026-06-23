@@ -58,7 +58,20 @@ This is the simplest path and needs **no secrets in GitHub**:
 
 1. Go to <https://vercel.com/new> and **Import** the
    `mikepitts25/reall-eatate-rental` repository.
-2. Framework preset auto-detects **Next.js**. Keep defaults.
+2. **Build & Output Settings** — accept the defaults. `vercel.json` already pins
+   the important ones, so leave every override **off**:
+
+   | Setting | Value | Notes |
+   | ------- | ----- | ----- |
+   | Framework Preset | **Next.js** | auto-detected |
+   | Root Directory | `./` (repo root) | app is at the root, not a subfolder — leave unchanged |
+   | Build Command | `next build` | default / in `vercel.json` — keep override off |
+   | Output Directory | *(blank / default)* | Next.js manages `.next` — **do not** set `out`/`dist` |
+   | Install Command | `npm install` | default / in `vercel.json` |
+   | Node.js Version | **20.x** (or 22.x) | Settings → General → Node.js Version |
+
+   This is a server-rendered App Router app (no static export), so the Output
+   Directory **must** stay default.
 3. Add **Environment Variables** (Production *and* Preview):
 
    | Name | Value | Notes |
@@ -67,6 +80,16 @@ This is the simplest path and needs **no secrets in GitHub**:
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | your anon key | public |
    | `SUPABASE_SERVICE_ROLE_KEY` | your service-role key | **secret** |
    | `NEXT_PUBLIC_SITE_URL` | your deployment URL | e.g. `https://leaseflip.vercel.app` |
+
+   Notes:
+   - The build **succeeds even without** these (the code only reads them at
+     request time), but the running app needs them to reach Supabase.
+   - For the very first deploy you won't know the final URL yet: deploy once,
+     copy the assigned URL into `NEXT_PUBLIC_SITE_URL`, then redeploy. It's used
+     for the auth email-redirect callback.
+   - If a build ever errors about a missing image host, it's because
+     `NEXT_PUBLIC_SUPABASE_URL` wasn't set at build time — `next.config.ts` reads
+     it to whitelist the Supabase image domain. Setting the var avoids it.
 
 4. **Deploy.** From then on:
    - Every push to a branch / PR → a **Preview Deployment** with its own URL.
