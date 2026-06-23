@@ -31,17 +31,28 @@ live app (no database).
 ### Step A — Create the Supabase project
 
 1. Create a project at <https://supabase.com/dashboard>.
-2. Open **SQL Editor** and run, in order:
+2. Apply the schema. **Pick one** of the two paths below.
+
+   **Path 1 — Supabase CLI (recommended).** Applies migrations without
+   copy-pasting and keeps `supabase/config.toml` in sync.
+   ```bash
+   npm i -g supabase            # or: brew install supabase/tap/supabase
+   supabase login
+   # Convenience wrapper — links + pushes (and seeds with --seed):
+   ./scripts/supabase-setup.sh <your-project-ref>
+   # ...which is equivalent to:
+   #   supabase link --project-ref <your-project-ref>
+   #   supabase db push         # applies supabase/migrations/*.sql in order
+   ```
+   Find `<your-project-ref>` under **Project Settings → General** (it's also the
+   subdomain of your project URL: `https://<ref>.supabase.co`).
+
+   **Path 2 — SQL editor (no CLI).** Open **SQL Editor** and run, in order:
    - `supabase/migrations/0001_init.sql`
    - `supabase/migrations/0002_rls.sql`
    - `supabase/migrations/0003_storage.sql`
    - *(optional, for demo data)* `supabase/seed.sql`
 
-   Or, with the [Supabase CLI](https://supabase.com/docs/guides/cli):
-   ```bash
-   supabase link --project-ref <your-ref>
-   supabase db push          # applies migrations
-   ```
 3. Confirm the **`property-photos`** Storage bucket exists (created by
    `0003_storage.sql`). If not: **Storage → New bucket → `property-photos`,
    public.**
@@ -51,6 +62,11 @@ live app (no database).
    - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon` public key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` secret key → `SUPABASE_SERVICE_ROLE_KEY`
+
+> **Fully local option:** with Docker running, `npm run db:start` boots a local
+> Supabase stack and `npm run db:reset` applies migrations **and** `seed.sql`
+> (and auto-creates the `property-photos` bucket via `config.toml`). The CLI
+> prints local URL/keys to put in `.env.local`.
 
 ### Step B — Deploy on Vercel (native Git integration — recommended)
 
