@@ -19,6 +19,7 @@ export async function signUpAction(
     email: formData.get("email"),
     password: formData.get("password"),
     role: formData.get("role"),
+    acceptedTerms: formData.get("acceptedTerms"),
   });
 
   if (!parsed.success) {
@@ -33,6 +34,9 @@ export async function signUpAction(
       data: {
         full_name: parsed.data.fullName,
         role: parsed.data.role,
+        // Consent record (intent + timestamp) for ESIGN/UETA purposes.
+        terms_accepted_at: new Date().toISOString(),
+        esign_consent: true,
       },
       emailRedirectTo: `${
         process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"

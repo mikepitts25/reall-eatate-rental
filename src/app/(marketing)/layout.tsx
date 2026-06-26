@@ -39,9 +39,19 @@ export default async function MarketingLayout({
       </header>
       <main className="flex-1">{children}</main>
       <footer className="border-t py-8">
-        <div className="container flex flex-col items-center justify-between gap-2 text-sm text-muted-foreground sm:flex-row">
+        <div className="container flex flex-col items-center justify-between gap-3 text-sm text-muted-foreground sm:flex-row">
           <p>© {new Date().getFullYear()} LeaseFlip. MVP demo.</p>
-          <p>Guaranteed income for owners · Real deals for operators</p>
+          <nav className="flex items-center gap-4">
+            <Link href="/legal/terms" className="hover:text-foreground">
+              Terms
+            </Link>
+            <Link href="/legal/privacy" className="hover:text-foreground">
+              Privacy
+            </Link>
+            <Link href="/legal/esign-consent" className="hover:text-foreground">
+              E-Sign Consent
+            </Link>
+          </nav>
         </div>
       </footer>
     </div>

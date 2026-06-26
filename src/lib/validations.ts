@@ -21,6 +21,15 @@ export const signupSchema = z.object({
   role: z.enum(["owner", "operator"], {
     required_error: "Choose how you'll use LeaseFlip",
   }),
+  // Checkbox: HTML sends "on" when checked, nothing when unchecked.
+  acceptedTerms: z
+    .preprocess(
+      (v) => v === "on" || v === "true" || v === true,
+      z.boolean()
+    )
+    .refine((v) => v === true, {
+      message: "You must accept the Terms, Privacy Policy, and e-sign consent",
+    }),
 });
 export type SignupInput = z.infer<typeof signupSchema>;
 
