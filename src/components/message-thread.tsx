@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import { Send } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -33,32 +34,56 @@ export function MessageThread({
   const [state, formAction] = useActionState(sendMessageAction, {});
   const bottomRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
 
-  // Realtime subscription for new messages on this proposal thread.
+  // Merge any two message lists, de-duplicating by id and keeping chronological
+  // order. Used to reconcile server (revalidated) and realtime updates.
+  const merge = (a: Message[], b: Message[]): Message[] => {
+    const byId = new Map<string, Message>();
+    for (const m of [...a, ...b]) byId.set(m.id, m);
+    return Array.from(byId.values()).sort((x, y) =>
+      x.created_at.localeCompare(y.created_at)
+    );
+  };
+
+  // Keep state in sync when the server revalidates the thread (this is what
+  // makes a sent message appear even if realtime isn't enabled).
   useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`messages:${proposalId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `proposal_id=eq.${proposalId}`,
-        },
-        (payload) => {
-          const msg = payload.new as Message;
-          setMessages((prev) =>
-            prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]
-          );
-        }
-      )
-      .subscribe();
+    setMessages((prev) => merge(prev, initialMessages));
+  }, [initialMessages]);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+  // Realtime subscription for new messages. Wrapped so a browser-side Supabase
+  // misconfiguration (e.g. missing public env at build time) degrades to
+  // "no live updates" instead of crashing the whole page.
+  useEffect(() => {
+    let cleanup = () => {};
+    try {
+      const supabase = createClient();
+      const channel = supabase
+        .channel(`messages:${proposalId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+            filter: `proposal_id=eq.${proposalId}`,
+          },
+          (payload) => {
+            const msg = payload.new as Message;
+            setMessages((prev) =>
+              prev.some((m) => m.id === msg.id) ? prev : merge(prev, [msg])
+            );
+          }
+        )
+        .subscribe();
+      cleanup = () => {
+        supabase.removeChannel(channel);
+      };
+    } catch (err) {
+      console.warn("Realtime messaging unavailable:", err);
+    }
+    return () => cleanup();
   }, [proposalId]);
 
   useEffect(() => {
@@ -112,6 +137,9 @@ export function MessageThread({
         action={async (fd) => {
           await formAction(fd);
           formRef.current?.reset();
+          // Pull the persisted message back from the server so it shows even
+          // when realtime isn't available.
+          router.refresh();
         }}
         className="mt-3 flex items-end gap-2 border-t pt-3"
       >
