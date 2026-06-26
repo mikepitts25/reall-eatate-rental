@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileSignature } from "lucide-react";
+import { FileSignature, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -53,17 +54,13 @@ export function AgreementPanel({
           <Field label="End" value={formatDate(agreement.end_date)} />
         </div>
 
-        {agreement.terms && (
-          <>
-            <Separator />
-            <div>
-              <p className="mb-1 text-sm font-medium">Draft terms</p>
-              <pre className="whitespace-pre-wrap rounded-md bg-muted p-3 text-xs text-muted-foreground">
-                {agreement.terms}
-              </pre>
-            </div>
-          </>
-        )}
+        <Separator />
+
+        <Button variant="outline" className="w-full" asChild>
+          <Link href={`/agreements/${agreement.id}/document`}>
+            <FileText className="h-4 w-4" /> View full agreement document
+          </Link>
+        </Button>
 
         <Separator />
 

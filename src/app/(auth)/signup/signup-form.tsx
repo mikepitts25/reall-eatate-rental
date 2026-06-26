@@ -97,6 +97,44 @@ export function SignupForm() {
         <FieldError message={state.fieldErrors?.password} />
       </div>
 
+      <div>
+        <label className="flex items-start gap-2 text-sm text-muted-foreground">
+          <input
+            type="checkbox"
+            name="acceptedTerms"
+            className="mt-0.5 h-4 w-4 rounded border-input"
+          />
+          <span>
+            I agree to the{" "}
+            <a
+              href="/legal/terms"
+              target="_blank"
+              className="font-medium text-primary hover:underline"
+            >
+              Terms
+            </a>
+            ,{" "}
+            <a
+              href="/legal/privacy"
+              target="_blank"
+              className="font-medium text-primary hover:underline"
+            >
+              Privacy Policy
+            </a>
+            , and consent to{" "}
+            <a
+              href="/legal/esign-consent"
+              target="_blank"
+              className="font-medium text-primary hover:underline"
+            >
+              electronic signatures
+            </a>
+            .
+          </span>
+        </label>
+        <FieldError message={state.fieldErrors?.acceptedTerms} />
+      </div>
+
       <SubmitButton />
     </form>
   );
