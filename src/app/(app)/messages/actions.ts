@@ -47,12 +47,12 @@ export async function sendMessageAction(
     // failure break sending the message.
     const recipient =
       proposal.owner_id === user.id ? proposal.operator_id : proposal.owner_id;
-    const { error: notifyError } = await supabase.from("notifications").insert({
-      user_id: recipient,
-      type: "message_received",
-      title: "New message",
-      body: parsed.data.body.slice(0, 120),
-      link: `/proposals/${parsed.data.proposal_id}`,
+    const { error: notifyError } = await supabase.rpc("create_notification", {
+      p_user_id: recipient,
+      p_type: "message_received",
+      p_title: "New message",
+      p_body: parsed.data.body.slice(0, 120),
+      p_link: `/proposals/${parsed.data.proposal_id}`,
     });
     if (notifyError) {
       console.warn("Failed to create message notification:", notifyError.message);

@@ -308,7 +308,18 @@ export interface Database {
       };
     };
     Views: { [key: string]: never };
-    Functions: { [key: string]: never };
+    Functions: {
+      create_notification: {
+        Args: {
+          p_user_id: string;
+          p_type: NotificationType;
+          p_title: string;
+          p_body?: string | null;
+          p_link?: string | null;
+        };
+        Returns: string;
+      };
+    };
     CompositeTypes: { [key: string]: never };
     Enums: {
       user_role: UserRole;

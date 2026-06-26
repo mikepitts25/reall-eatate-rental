@@ -65,12 +65,12 @@ export async function submitProposalAction(
   }
 
   // Notify the owner.
-  await supabase.from("notifications").insert({
-    user_id: property.owner_id,
-    type: "proposal_received",
-    title: "New proposal received",
-    body: `You received a new proposal of $${d.offered_monthly_rent}/mo.`,
-    link: `/proposals/${proposal.id}`,
+  await supabase.rpc("create_notification", {
+    p_user_id: property.owner_id,
+    p_type: "proposal_received",
+    p_title: "New proposal received",
+    p_body: `You received a new proposal of $${d.offered_monthly_rent}/mo.`,
+    p_link: `/proposals/${proposal.id}`,
   });
 
   await supabase.from("audit_logs").insert({
@@ -158,12 +158,12 @@ export async function respondToProposalAction(
 
   // Notify the counterpart.
   const notifyUserId = isOwner ? proposal.operator_id : proposal.owner_id;
-  await supabase.from("notifications").insert({
-    user_id: notifyUserId,
-    type: "proposal_updated",
-    title: `Proposal ${newStatus}`,
-    body: `A proposal was ${newStatus}.`,
-    link: `/proposals/${proposalId}`,
+  await supabase.rpc("create_notification", {
+    p_user_id: notifyUserId,
+    p_type: "proposal_updated",
+    p_title: `Proposal ${newStatus}`,
+    p_body: `A proposal was ${newStatus}.`,
+    p_link: `/proposals/${proposalId}`,
   });
 
   await supabase.from("audit_logs").insert({
